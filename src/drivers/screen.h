@@ -1,5 +1,6 @@
 #pragma once
 #include "../kernel/ke_string.h"
+#include "ports.h"
 
 #define VGA_ADDRESS 0xb8000
 #define MAX_ROWS 25

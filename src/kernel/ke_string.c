@@ -13,3 +13,18 @@ int ke_strlen(char* pszMsg)
 
 	return counter;
 }
+
+void ke_str_reverse(char* pszMsg)
+{
+	int start = 0;
+	int end = ke_strlen(pszMsg) - 1;
+
+	while (start < end)
+	{
+		char temp = pszMsg[start];
+		pszMsg[start] = pszMsg[end];
+		pszMsg[end] = temp;
+		start++;
+		end--;
+	}
+}
