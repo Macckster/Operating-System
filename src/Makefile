@@ -6,7 +6,7 @@ OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 # Change this if your cross-compiler is somewhere else
 CC = gcc
 # -g: Use debugging symbols in gcc
-CFLAGS = -m32 -g -fno-pie
+CFLAGS = -m32 -g -fno-pie -ggdb
 
 # First rule is run by default
 os-image.bin: boot/bootsect.bin kernel.bin
@@ -16,6 +16,8 @@ os-image.bin: boot/bootsect.bin kernel.bin
 # to 'strip' them manually on this case
 kernel.bin: boot/kernel_entry.o ${OBJ}
 	ld -m elf_i386 -o $@ -Ttext 0x1000 $^ --oformat binary
+
+debug: kernel.elf os-image.bin
 
 # Used for debugging purposes
 kernel.elf: boot/kernel_entry.o ${OBJ}

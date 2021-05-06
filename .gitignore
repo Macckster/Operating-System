@@ -12,6 +12,9 @@
 *.o
 *.bin
 
+src/gdb.sh
+src/rundebug.bat
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

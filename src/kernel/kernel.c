@@ -7,16 +7,21 @@
 #include "../cpu/isr.h"
 #include "../cpu/idt.h"
 
+#include <stdbool.h>
+
+
+void init()
+{
+    isr_install();
+    asm volatile("sti");
+    init_keyboard();
+}
 
 void main()
 {
     ke_println("Entered 32-bit protected mode");
+
+    init();
+
     ke_println("Kernel is running!");
-    ke_println("Hello, World!");
-
-    isr_install();
-
-    //asm volatile("sti");
-
-    init_keyboard();
 }

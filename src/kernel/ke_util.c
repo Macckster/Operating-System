@@ -30,5 +30,5 @@ void itoa(int n, char str[])
     if (sign < 0) str[i++] = '-';
     str[i] = '\0';
 
-    ke_str_reverse(str);
+    str_reverse(str);
 }

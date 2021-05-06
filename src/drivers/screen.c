@@ -21,8 +21,76 @@ int get_cursor_pos()
 	return position;
 }
 
+int print_char(int offset, char c, u8 colour)
+{
+	if (c == '\n')
+	{
+		int row = get_offset_row(offset);
+		offset = get_offset(0, row + 1);
+	}
+	else
+	{
+		vga[offset] = c;
+		offset++;
+
+		vga[offset] = WHITE_ON_BLACK;
+		offset++;
+	}
+
+	/* Check if the offset is over screen size and scroll */
+	if (offset >= MAX_ROWS * MAX_COLS * 2)
+	{
+		for (int i = 1; i < MAX_ROWS; i++)
+			memcpy(vga + get_offset(0, i),
+				   vga + get_offset(0, i - 1),
+				   MAX_COLS * 2);
+
+		/* Blank last line */
+		char* last_line = vga + get_offset(0, MAX_ROWS - 1);
+		for (int i = 0; i < MAX_COLS * 2; i++) last_line[i] = 0;
+
+		last_line[1] = WHITE_ON_BLACK;
+
+		offset -= 2 * MAX_COLS;
+	}
+
+	return offset;
+}
+
+void ke_print_char(char c)
+{
+	int offset = 2 * get_cursor_pos();
+
+	offset = print_char(offset, c, WHITE_ON_BLACK);
+
+	set_cursor_offset(offset);
+}
+
+void ke_print(char* pszMsg)
+{
+	int len = strlen(pszMsg);
+
+	int offset = 2 * get_cursor_pos();
+
+	for (int i = 0; i < len; i++)
+	{
+		offset = print_char(offset, pszMsg[i], WHITE_ON_BLACK);
+	}
+
+	set_cursor_offset(offset);
+}
+
+void ke_println(char* pszMsg)
+{
+	ke_print(pszMsg);
+	ke_print("\n");
+}
+
 void set_cursor_offset(int offset)
 {
+	if (offset < 0)
+		return;
+
 	/* Similar to get_cursor_offset, but instead of reading we write data */
 	offset /= 2;
 	port_byte_out(REG_SCREEN_CTRL, 14);
@@ -31,71 +99,17 @@ void set_cursor_offset(int offset)
 	port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset & 0xff));
 }
 
-int print_char(char c, int col, int row, char attr)
+void backspace()
 {
-	unsigned char* vidmem = (unsigned char*)VGA_ADDRESS;
+	int offset = 2 * get_cursor_pos();
 
-	if (!attr) 
-		attr = WHITE_ON_BLACK;
+	int row = get_offset_row(offset);
+	int col = get_offset_col(offset) - 1;
 
-	/* Error control: print a red 'E' if the coords aren't right */
-	if (col >= MAX_COLS || row >= MAX_ROWS)
-	{
-		vidmem[2 * (MAX_COLS) * (MAX_ROWS)-2] = 'E';
-		vidmem[2 * (MAX_COLS) * (MAX_ROWS)-1] = RED_ON_WHITE;
+	offset = get_offset(col, row);
 
-		return get_offset(col, row);
-	}
-
-	int offset;
-	if (col >= 0 && row >= 0) 
-		offset = get_offset(col, row);
-	else 
-		offset = VGA_OFFSET;
-
-	if (c == '\n')
-	{
-		row = get_offset_row(offset);
-		offset = get_offset(0, row + 1);
-	}
-	else
-	{
-		vidmem[offset] = c;
-		vidmem[offset + 1] = attr;
-		offset += 2;
-	}
+	vga[offset] = 0;
+	vga[offset + 1] = WHITE_ON_BLACK;
 
 	set_cursor_offset(offset);
-	return offset;
-}
-
-void ke_print(char* pszMsg)
-{
-	get_cursor_pos();
-
-	int local_offset = VGA_OFFSET;
-
-	char* screen = VGA_ADDRESS;
-
-	for (int i = 0; i < ke_strlen(pszMsg); i++)
-	{
-		screen[local_offset] = pszMsg[i];
-		local_offset++;
-
-		screen[local_offset] = WHITE_ON_BLACK;
-		local_offset++;
-	}
-
-	set_cursor_offset(local_offset);
-}
-
-void ke_println(char* pszMsg)
-{
-	ke_print(pszMsg);
-
-	int newRow = get_offset_row(VGA_OFFSET) + 1;
-
-	int offset = get_offset(0, newRow);
-
-	set_cursor_offset(offset);	
 }

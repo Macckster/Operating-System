@@ -2,7 +2,7 @@
 #include "../drivers/screen.h"
 
 //Compute length of string
-int ke_strlen(char* pszMsg)
+int strlen(char* pszMsg)
 {
 	int counter = 0;
 	while (*pszMsg)
@@ -14,10 +14,10 @@ int ke_strlen(char* pszMsg)
 	return counter;
 }
 
-void ke_str_reverse(char* pszMsg)
+void str_reverse(char* pszMsg)
 {
 	int start = 0;
-	int end = ke_strlen(pszMsg) - 1;
+	int end = strlen(pszMsg) - 1;
 
 	while (start < end)
 	{
