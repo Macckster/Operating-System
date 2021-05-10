@@ -1,0 +1,1 @@
+genisoimage -o mos.iso os-image.bin

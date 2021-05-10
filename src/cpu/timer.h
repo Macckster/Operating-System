@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../kernel/ke_util.h"
+#include "../kernel/util.h"
 #include "../drivers/ports.h"
+#include "../drivers/screen.h"
+#include "isr.h"
 
-void init_timer(u32 freq);
+void init_timer(uint32_t freq);

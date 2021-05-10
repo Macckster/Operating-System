@@ -1,5 +1,7 @@
 #pragma once
-#include "../kernel/ke_string.h"
+#include "../kernel/string.h"
+#include "../kernel/util.h"
+#include "../kernel/memory.h"
 #include "ports.h"
 
 #define VGA_ADDRESS 0xb8000

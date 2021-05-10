@@ -6,7 +6,7 @@ OBJ = ${C_SOURCES:.c=.o cpu/interrupt.o}
 # Change this if your cross-compiler is somewhere else
 CC = gcc
 # -g: Use debugging symbols in gcc
-CFLAGS = -m32 -g -fno-pie -ggdb
+CFLAGS = -m32 -g -fno-pie -ggdb -DCOMPILE_TIME=`date '+%s'`
 
 # First rule is run by default
 os-image.bin: boot/bootsect.bin kernel.bin

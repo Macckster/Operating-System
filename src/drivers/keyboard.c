@@ -2,7 +2,7 @@
 #include "ports.h"
 #include "../cpu/isr.h"
 #include "screen.h"
-#include "../kernel/ke_util.h"
+#include "../kernel/util.h"
 
 #define SC_MAX 57
 
@@ -11,6 +11,9 @@
 
 #define SHIFT_DOWN 0x2A
 #define SHIFT_UP 0xAA
+
+char key_buffer[128];
+int buff_tail;
 
 const char sc_ascii[] = 
   { '?', '?', '1', '2', '3', '4', '5', '6','7', '8', '9', '0', '+', 
@@ -30,8 +33,11 @@ int shift = 0;
 
 static void keyboard_callback(registers_t regs)
 {
+    if (!read_input)
+        return;
+
     /* The PIC leaves us the scancode in port 0x60 */
-    u8 scancode = port_byte_in(0x60);
+    uint8_t scancode = port_byte_in(0x60);
 
     if (scancode == SHIFT_DOWN)
     {
@@ -49,10 +55,14 @@ static void keyboard_callback(registers_t regs)
     if (scancode == BACKSPACE)
     {
         backspace();
+        key_buffer[buff_tail] = 8;
+        buff_tail++;
     }
     else if (scancode == ENTER)
     {
         ke_print_char('\n');
+        key_buffer[buff_tail] = '\n';
+        buff_tail++;
     }
     else
     {
@@ -63,10 +73,27 @@ static void keyboard_callback(registers_t regs)
             c = sc_ascii[scancode];
 
         ke_print_char(c);
+        key_buffer[buff_tail] = c;
+        buff_tail++;
     }
 }
 
 void init_keyboard()
 {
     register_interrupt_handler(IRQ1, keyboard_callback);
+    buff_tail = 0;
+    read_input = 0;
+}
+
+char getchar()
+{
+    while (buff_tail == 0) {}
+
+    buff_tail--;
+    return key_buffer[buff_tail];
+}
+
+void set_keyboard_read_enable(int state)
+{
+    read_input = state;
 }

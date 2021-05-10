@@ -21,7 +21,7 @@ int get_cursor_pos()
 	return position;
 }
 
-int print_char(int offset, char c, u8 colour)
+int print_char(int offset, char c, uint8_t colour)
 {
 	if (c == '\n')
 	{
