@@ -13,6 +13,8 @@ public:
 
 	void ReadEfiMemoryMap(EFI_MEMORY_DESCRIPTOR* pMap, size_t mapSize, size_t mapDescSize);
 	Bitmap pageBitmap;
+	uint64_t pageBitmapIndex;
+	bool initialized;
 
 	void FreePage(void* address);
 	void FreePages(void* address, uint64_t amount);

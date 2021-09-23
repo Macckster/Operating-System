@@ -29,6 +29,12 @@ void TextRenderer::SetColour(uint Color)
 	textColour = Color;
 }
 
+void TextRenderer::Clear(uint colour)
+{
+	BasicRenderer::Clear(colour);
+	cursor = { 0, 0 };
+}
+
 void TextRenderer::Print(const char* pszMsg)
 {
 	char* str = (char*)pszMsg;

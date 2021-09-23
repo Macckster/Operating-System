@@ -25,4 +25,6 @@ void BasicRenderer::Clear(uint colour)
             *pixPtr = colour;
         }
     }
+
+
 }

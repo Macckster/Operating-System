@@ -1,13 +1,29 @@
 #include "kernelUtil.hpp"
+#include "../gdt/gdt.hpp"
+
+void InitGDT()
+{
+	GDTDescriptor descriptor{};
+	descriptor.Size = 383; //Temp fix because sizeof is retarded
+	descriptor.Offset = (uint64_t)&defaultGDT;
+
+	Printf("Loading GDT with address: %d\n", descriptor.Offset);
+	Printf("GDT Size: %d\n", descriptor.Size);
+	Printf("Descriptor address: %p\n", &descriptor);
+
+	//LoadGDT(&descriptor);
+}
 
 //TODO: Update this to panic if any of this fails.
 void InitKernel(Boot_info* bootInfo)
 {
 	InitPrint(bootInfo->buffer, bootInfo->font);
-
 	g_tRend.Clear(Colour(0,0,0));
-
 	Printf("Printing Works!\n");
+
+	InitMemory();
+	InitGDT();
+
 
 	gAllocator = PageFrameAllocator();
 	gAllocator.ReadEfiMemoryMap(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
@@ -30,21 +46,12 @@ void InitKernel(Boot_info* bootInfo)
 
 	Printf("I made a page table manager\n");
 
-	Printf("pMap: %p, mapSize: %d, mapDescSize: %d", bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+	uint64_t mem = GetTotalSystemMemory(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
+	Printf("System Memory: %ld\n", mem);
 
-	//Den här funktionen är fucket om man använder den här (ie man kan inte calla den) men funkar på andra ställen. Memset behöver delayas eller nåt med ett printf.
-	uint64_t mem = 8589934592; //GetTotalSystemMemory(bootInfo->mMap, bootInfo->mMapSize, bootInfo->mMapDescSize);
-	Printf("I found memory\n");
-	Printf("mem: %ld\n", mem);
-
-	//Den här loopen går fan inte å lita på. Jag vette fan vad problemet är.
 	for (uint64_t i = 0; i < mem; i += 0x1000)
 	{
 		pMan.MapMemory((void*)i, (void*)i);
-		Printf("Loop: %d/%d", i, mem);
-		point p = g_tRend.GetCursor();
-		p.x = 0;
-		g_tRend.SetCursor(p);
 	}
 
 	Printf("I mapped the memory\n");
@@ -68,9 +75,9 @@ void InitKernel(Boot_info* bootInfo)
 
 	asm("mov %0, %%cr3" : : "r" (PML4));
 
-	g_tRend.SetCursor({0, 0});
+	//g_tRend.SetCursor({0, 0});
 
-	g_tRend.Clear(Colour(0, 0, 0));
+	//g_tRend.Clear(Colour(0, 0, 0));
 
 	Printf("Kernel Version: %d\n", KERNEL_VERSION);
 }

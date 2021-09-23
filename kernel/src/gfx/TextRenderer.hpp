@@ -13,7 +13,8 @@ public:
 	void Print(const char* pszMsg);
 	void SetCursor(const point& p);
 	point GetCursor();
-	void SetColour(uint Color);
+	void SetColour(uint colour);
+	void Clear(uint colour);
 
 private:
 	psf1_font_t* font;

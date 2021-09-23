@@ -4,16 +4,23 @@
 uint64_t freeMemory;
 uint64_t reservedMemory;
 uint64_t usedMemory;
-bool initialized = false;
 PageFrameAllocator gAllocator;
 
-PageFrameAllocator::PageFrameAllocator() {}
+PageFrameAllocator::PageFrameAllocator() { pageBitmapIndex = 0; initialized = false; Printf("PageFrameAllocator constructor. Initialized: %d\n", initialized); }
 
 void PageFrameAllocator::ReadEfiMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mMapSize, size_t mMapDescSize)
-{
-    if (initialized) return;
+{   
+    /*
+    if (initialized) 
+    {
+        Printf("We are initialized\n");
+        return;
+    }
+
+    Printf("Initializing some stuff\n");
 
     initialized = true;
+    */
 
     uint64_t mMapEntries = mMapSize / mMapDescSize;
 
@@ -36,6 +43,8 @@ void PageFrameAllocator::ReadEfiMemoryMap(EFI_MEMORY_DESCRIPTOR* mMap, size_t mM
     uint64_t memorySize = GetTotalSystemMemory(mMap, mMapEntries, mMapDescSize);
     freeMemory = memorySize;
     uint64_t bitmapSize = memorySize / 0x1000 / 8 + 1;
+
+    Printf("Calculated bitmap size to: %d\n", bitmapSize);
 
     InitBitmap(bitmapSize, largestFreeMemSeg);
 
@@ -60,21 +69,15 @@ void PageFrameAllocator::InitBitmap(size_t bitmapSize, void* bufferAddress)
         *(uint8_t*)(pageBitmap.map + i) = 0;
     }
 }
-uint64_t pageBitmapIndex = 0;
+
 void* PageFrameAllocator::RequestPage()
 {
     for (; pageBitmapIndex < pageBitmap.size * 8; pageBitmapIndex++)
     {
-        point p = g_tRend.GetCursor();
-        point a = p;
-        a.y = 16 * 16;
-        a.x = 0;
-        g_tRend.SetCursor(a);
-        Printf("PageBitMapIndex is: %d", pageBitmapIndex);
-        g_tRend.SetCursor(p);
+        if (pageBitmap[pageBitmapIndex] == true)  continue;
 
-        if (pageBitmap[pageBitmapIndex] == true) { continue; Printf("Continue!"); while (true) { } };
         LockPage((void*)(pageBitmapIndex * 0x1000));
+
         return (void*)(pageBitmapIndex * 0x1000);
     }
 
