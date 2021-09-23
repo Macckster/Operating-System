@@ -1,28 +1,39 @@
 #include "kernelUtil.hpp"
 #include "../gdt/gdt.hpp"
+#include "../interrupts/idt.hpp"
+#include "../interrupts/interrupts.hpp"
 
 void InitGDT()
 {
-	GDTDescriptor descriptor{};
-	descriptor.Size = 383; //Temp fix because sizeof is retarded
-	descriptor.Offset = (uint64_t)&defaultGDT;
+	GDTDescriptor descriptor;
+	descriptor.size = sizeof(GDT) - 1;
+	descriptor.offset = (uint64_t)&DefaultGDT;
 
-	Printf("Loading GDT with address: %d\n", descriptor.Offset);
-	Printf("GDT Size: %d\n", descriptor.Size);
-	Printf("Descriptor address: %p\n", &descriptor);
+	LoadGDT(&descriptor);
+}
+IDTR idtr;
+void InitInterrupts()
+{
+	idtr.limit = 0x0fff;
+	idtr.offset = (uint64_t)gAllocator.RequestPage();
+	IDTDescriptorEntry* int_PageFault = (IDTDescriptorEntry*)(idtr.offset + 0xe * sizeof(IDTDescriptorEntry));
+	int_PageFault->SetOffset((uint64_t)PageFaultHandler);
+	int_PageFault->type_attr = IDT_TA_InterruptGate;
+	int_PageFault->selector = 0x08;
 
-	//LoadGDT(&descriptor);
+	asm("lidt %0" : : "m" (idtr));
 }
 
 //TODO: Update this to panic if any of this fails.
 void InitKernel(Boot_info* bootInfo)
 {
+	InitGDT();
+
 	InitPrint(bootInfo->buffer, bootInfo->font);
 	g_tRend.Clear(Colour(0,0,0));
 	Printf("Printing Works!\n");
 
 	InitMemory();
-	InitGDT();
 
 
 	gAllocator = PageFrameAllocator();
@@ -75,9 +86,10 @@ void InitKernel(Boot_info* bootInfo)
 
 	asm("mov %0, %%cr3" : : "r" (PML4));
 
-	//g_tRend.SetCursor({0, 0});
+	InitInterrupts();
 
-	//g_tRend.Clear(Colour(0, 0, 0));
+	g_tRend.SetCursor({0, 0});
+	g_tRend.Clear(Colour(0, 0, 0));
 
 	Printf("Kernel Version: %d\n", KERNEL_VERSION);
 }
